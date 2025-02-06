@@ -4,7 +4,7 @@ import type { NDKEvent } from '@nostr-dev-kit/ndk';
  * Represents a node in the event tree composing a publication.  The data contained in the node is
  * a Nostr event, and the node contains links to its parent and children.
  */
-interface PublicationTreeNode {
+export interface PublicationTreeNode {
   event: NDKEvent;
   parent?: PublicationTreeNode;
   children: PublicationTreeNode[];
@@ -17,31 +17,56 @@ export class PublicationTree {
   private root: PublicationTreeNode;
 
   /**
-   * A map of Nostr event IDs to their corresponding nodes.  This map allows `O(1)` lookup of Nostr
-   * events that have already been stored in memory.
+   * A map of Nostr event hex IDs to their corresponding nodes.  This map allows `O(1)` lookup of
+   * Nostr events that have already been stored in memory.
    */
-  private nodes: Map<string, PublicationTreeNode> = new Map();
+  private nodesById: Map<string, PublicationTreeNode> = new Map();
+
+  /**
+   * A map of addresses of Nostr replaceable events to their corresponding nodes.  Addresses are
+   * of the format used by `a` tags.  This map allows `O(1)` lookup of Nostr events that have
+   * already been stored in memory.
+   */
+  private nodesByAddress: Map<string, PublicationTreeNode> = new Map();
 
   constructor(rootEvent: NDKEvent) {
     this.root = {
       event: rootEvent,
       children: [],
     };
-    this.nodes.set(rootEvent.id, this.root);
+    this.nodesById.set(rootEvent.id, this.root);
+    
+    const address = this.getEventAddress(rootEvent);
+    if (address) {
+      this.nodesByAddress.set(address, this.root);
+    }
   }
+
+  // #region Getters and Setters
+
+  get rootNode(): PublicationTreeNode {
+    return this.root;
+  }
+
+  // #endregion
 
   // #region Basic Tree Operations
 
   /**
    * Adds an event to the publication tree.
    * @param event The Nostr event to add to the tree.
-   * @param parentId The ID of the parent event of the event to add.
+   * @param parent An identifier for the parent event of the event to add.  May be a Nostr event,
+   * the hex ID of an event, or the address of a replaceable or parameterized replaceable event.
+   * @throws An error if the parent event does not exist in the tree.
    */
-  addNode(event: NDKEvent, parentId: string) {
-    const parentNode = this.nodes.get(parentId);
-    if (parentNode == null) {
-      // TODO: Consider better handling options for this case.
-      throw new Error(`Parent node with id ${parentId} not found`);
+  addNode(event: NDKEvent, parent: NDKEvent | string) {
+    let parentNode: PublicationTreeNode | null;
+    if (typeof parent === 'string') {
+      parentNode = this.getNode(parent);
+      if (parentNode == null) throw new Error(`Parent event ${parent} not found.`);
+    } else {
+      parentNode = this.getNode(parent.id);
+      if (parentNode == null) throw new Error(`Parent event ${parent.id} not found.`);
     }
 
     // Michael J - 05 Feb 2025 - JS/TS passes object types by reference, so nodes within the tree
@@ -51,17 +76,31 @@ export class PublicationTree {
       parent: parentNode,
       children: [],
     };
-    this.nodes.set(event.id, node);
+
+    this.nodesById.set(event.id, node);
+
+    const address = this.getEventAddress(event);
+    if (address) {
+      this.nodesByAddress.set(address, node);
+    }
+
     parentNode.children.push(node);
   }
 
   /**
    * Retrieves a node from the tree by its Nostr event ID.
-   * @param eventId The Nostr event ID of the node to retrieve.
+   * @param event An identifier for the node to retrieve.  May be a Nostr event, the hex ID of an
+   * event, or the address of a replaceable or parameterized replaceable event.
    * @returns The node corresponding to the Nostr event ID, or `null` if the node is not found.
    */
-  getNode(eventId: string): PublicationTreeNode | null {
-    return this.nodes.get(eventId) ?? null;
+  getNode(event: string | NDKEvent): PublicationTreeNode | null {
+    if (typeof event === 'string') {
+      return this.nodesById.get(event)
+        ?? this.nodesByAddress.get(event)
+        ?? null;
+    }
+
+    return this.nodesById.get(event.id) ?? null;
   }
 
   /**
@@ -112,4 +151,16 @@ export class PublicationTree {
   }
 
   // #endregion
+
+  // #region Private Helpers
+
+  private getEventAddress(event: NDKEvent): string | null {
+    if (event.isParamReplaceable()) {
+      return `${event.kind}:${event.pubkey}:${event.dTag}`;
+    } else if (event.isReplaceable()) {
+      return `${event.kind}:${event.pubkey}`;
+    }
+
+    return null;
+  }
 }

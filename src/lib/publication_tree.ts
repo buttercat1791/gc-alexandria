@@ -11,6 +11,9 @@ interface PublicationTreeNode {
 }
 
 export class PublicationTree {
+  /**
+   * The root node of the tree.
+   */
   private root: PublicationTreeNode;
 
   /**
@@ -61,6 +64,11 @@ export class PublicationTree {
     return this.nodes.get(eventId) ?? null;
   }
 
+  /**
+   * Retrieves the parent node of an event in the tree.
+   * @param event The event or event ID of the node whose parent is to be retrieved.
+   * @returns The parent node of the event, or `null` if the event is not found or has no parent.
+   */
   getParent(event: NDKEvent | string): PublicationTreeNode | null {
     if (typeof event === 'string') {
       return this.getNode(event)?.parent ?? null;
@@ -69,6 +77,12 @@ export class PublicationTree {
     return this.getNode(event.id)?.parent ?? null;
   }
 
+  /**
+   * Retrieves the child nodes of an event in the tree.
+   * @param event The event or event ID of the node whose children are to be retrieved.
+   * @returns The child nodes of the event, or an empty array if the event is not found or has no
+   * children.
+   */
   getChildren(event: NDKEvent | string): PublicationTreeNode[] {
     if (typeof event === 'string') {
       return this.getNode(event)?.children ?? [];
@@ -77,6 +91,12 @@ export class PublicationTree {
     return this.getNode(event.id)?.children ?? [];
   }
 
+  /**
+   * Retrieves the sibling nodes of an event in the tree.
+   * @param event The event or event ID of the node whose siblings are to be retrieved.
+   * @returns The sibling nodes of the event, minus the given event itself, or an empty array if
+   * the event is not found or has no siblings.
+   */
   getSiblings(event: NDKEvent | string): PublicationTreeNode[] {
     if (typeof event === 'string') {
       return this.getNode(event)
@@ -90,12 +110,6 @@ export class PublicationTree {
       ?.children
       .filter((child) => child.event.id !== event.id) ?? [];
   }
-
-  // #endregion
-
-  // #region Traversal and Search
-
-  // TODO: Add depth-first search.
 
   // #endregion
 }

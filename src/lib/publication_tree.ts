@@ -10,7 +10,7 @@ export interface PublicationTreeNode {
   children: PublicationTreeNode[];
 }
 
-export class PublicationTree {
+export default class PublicationTree {
   /**
    * The root node of the tree.
    */

@@ -1,6 +1,7 @@
 import type NDK from '@nostr-dev-kit/ndk';
-import type { PublicationTree, PublicationTreeNode } from './publication_tree';
+import type { PublicationTreeNode } from './publication_tree';
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
+import type PublicationTree from './publication_tree';
 
 /**
  * Performs a depth-first search of a publication tree for a given event, adding missing nodes to

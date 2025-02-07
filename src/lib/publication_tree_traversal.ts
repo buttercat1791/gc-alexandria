@@ -10,11 +10,12 @@ import type PublicationTree from './publication_tree';
  * @param tree The publication tree to search.
  * @param ndk The NDK instance to use for fetching events.
  * @returns The target event if found, null otherwise.
+ * @effects The publication tree is mutated by adding nodes as they are discovered.
  */
 export async function depthFirstFindEvent(
-  target: NDKEvent | string,
+  target: Readonly<NDKEvent> | string,
   tree: PublicationTree,
-  ndk: NDK
+  ndk: Readonly<NDK>
 ): Promise<NDKEvent | null> {
   const targetId = typeof target === 'string'
     ? target

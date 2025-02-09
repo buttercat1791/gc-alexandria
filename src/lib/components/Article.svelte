@@ -12,7 +12,7 @@
   import { onMount } from "svelte";
   import { BookOutline } from "flowbite-svelte-icons";
   import Preview from "./Preview.svelte";
-  import { pharosInstance } from "$lib/parser";
+  import { pharosInstance } from "$lib/pharos";
   import { page } from "$app/state";
 
   let { rootId, publicationType } = $props<{ rootId: string, publicationType: string }>();

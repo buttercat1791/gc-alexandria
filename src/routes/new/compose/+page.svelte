@@ -1,6 +1,6 @@
 <script lang='ts'>
   import Preview from "$lib/components/Preview.svelte";
-  import { pharosInstance } from "$lib/parser";
+  import { pharosInstance } from "$lib/pharos";
   import { Heading } from "flowbite-svelte";
 
   let treeNeedsUpdate: boolean = false;

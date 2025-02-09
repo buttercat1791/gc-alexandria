@@ -1,5 +1,5 @@
 import type NDK from '@nostr-dev-kit/ndk';
-import Pharos from './parser';
+import Pharos from './pharos';
 import PublicationTree from './publication_tree';
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { depthFirstFindEvent } from './publication_tree_traversal';

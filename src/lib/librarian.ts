@@ -1,8 +1,8 @@
 import type NDK from '@nostr-dev-kit/ndk';
-import Pharos from './pharos';
-import PublicationTree from './publication_tree';
+import Pharos from './parser/pharos';
+import PublicationTree from './publication_tree/publication_tree';
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
-import { depthFirstFindEvent } from './publication_tree_traversal';
+import { depthFirstFindEvent } from './publication_tree/publication_tree_traversal';
 
 export class Librarian {
   private ndk: NDK;

@@ -12,7 +12,8 @@ import type {
 } from 'asciidoctor';
 import he from 'he';
 import { writable, type Writable } from 'svelte/store';
-import { zettelKinds } from './consts';
+import { zettelKinds } from '../consts';
+import type PublicationTree from '../publication_tree/publication_tree';
 
 interface IndexMetadata {
   authors?: string[];
@@ -36,7 +37,7 @@ export enum InsertLocation {
 }
 
 /**
- * @classdesc Pharos is an extension of the Asciidoctor class that adds Nostr Knowledge Base (NKB) 
+ * @classdesc Pharos is an extension of the Asciidoctor class that adds Nostr Knowledge Base (NKB)
  * features to core Asciidoctor functionality.  Asciidoctor is used to parse an AsciiDoc document
  * into an Abstract Syntax Tree (AST), and Phraos generates NKB events from the nodes in that tree.
  * @class

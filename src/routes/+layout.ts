@@ -1,7 +1,7 @@
 import { feedTypeStorageKey } from '$lib/consts';
 import { FeedType } from '$lib/consts';
 import { getPersistedLogin, initNdk, loginWithExtension, ndkInstance } from '$lib/ndk';
-import Pharos, { pharosInstance } from '$lib/pharos';
+import Pharos, { pharosInstance } from '$lib/parser/pharos';
 import { feedType } from '$lib/stores';
 import type { LayoutLoad } from './$types';
 

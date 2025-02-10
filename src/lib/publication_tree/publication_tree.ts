@@ -93,7 +93,7 @@ export default class PublicationTree {
    * event, or the address of a replaceable or parameterized replaceable event.
    * @returns The node corresponding to the Nostr event ID, or `null` if the node is not found.
    */
-  getNode(event: string | NDKEvent): PublicationTreeNode | null {
+  getNode(event: Readonly<string | NDKEvent>): PublicationTreeNode | null {
     if (typeof event === 'string') {
       return this.nodesById.get(event)
         ?? this.nodesByAddress.get(event)

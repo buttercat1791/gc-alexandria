@@ -150,6 +150,34 @@ export default class PublicationTree {
       .filter((child) => child.event.id !== event.id) ?? [];
   }
 
+  /**
+   * Indicates the distance of an event from the root node.
+   * @param event The event or event ID of the node whose depth is to be retrieved.
+   * @returns The depth of the event.
+   * @throws An error if the event is not found in the tree.
+   */
+  getNodeDepth(event: Readonly<NDKEvent | string>): number {
+    let node: PublicationTreeNode | null;
+
+    if (typeof event === 'string') {
+      node = this.getNode(event);
+    } else {
+      node = this.getNode(event.id);
+    }
+
+    if (node == null) {
+      throw new Error('Node does not exist in tree.');
+    }
+
+    let depth = 0;
+    while (node.parent != null) {
+      depth++;
+      node = node.parent;
+    }
+
+    return depth;
+  }
+
   // #endregion
 
   // #region Private Helpers

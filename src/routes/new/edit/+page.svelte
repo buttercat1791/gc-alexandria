@@ -2,7 +2,7 @@
   import { Heading, Textarea, Toolbar, ToolbarButton, Tooltip } from "flowbite-svelte";
   import { CodeOutline, EyeSolid, PaperPlaneOutline } from "flowbite-svelte-icons";
   import Preview from "$lib/components/Preview.svelte";
-  import Pharos, { pharosInstance } from "$lib/pharos";
+  import Pharos, { pharosInstance } from "$lib/parser/pharos";
   import { ndkInstance } from "$lib/ndk";
   import { goto } from "$app/navigation";
 

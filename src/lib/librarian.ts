@@ -3,15 +3,14 @@ import Pharos from './parser/pharos';
 import PublicationTree from './publication_tree/publication_tree';
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { depthFirstFindEvent } from './publication_tree/publication_tree_traversal';
+import { getSectionContent } from './parser/pharos_utils';
 
 export class Librarian {
   private ndk: NDK;
-  private parser: Pharos;
   private publication: PublicationTree;
 
   constructor(publicationIndex: NDKEvent, ndk: NDK) {
     this.ndk = ndk;
-    this.parser = new Pharos(ndk);
     this.publication = new PublicationTree(publicationIndex);
   }
 
@@ -32,12 +31,11 @@ export class Librarian {
       // TODO: Handle the case where the target event is the root index.
     }
 
-    const siblings = this.publication.getSiblings(targetEvent.id);
+    const sectionContent = await getSectionContent(parent!.event, this.publication);
 
-    // TODO: Update the parser to work with a publication tree.
-    // TODO: Add a function to fill out a subtree rooted at the parent.
-    // TODO: Create a PublicationTree instance from the subtree rooted at the parent.
+    const parser = new Pharos(this.ndk);
+    parser.parse(sectionContent);
 
-    return this.parser.getHtml(); // TODO: Return the HTML content of the section.
+    return parser.getHtml();
   }
 }

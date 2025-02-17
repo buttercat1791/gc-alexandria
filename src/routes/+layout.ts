@@ -29,7 +29,7 @@ export const load: LayoutLoad = () => {
     console.warn(`Failed to login with extension: ${e}\n\nContinuing with anonymous session.`);
   }
 
-  const parser = new Pharos(ndk);
+  const parser = new Pharos();
   pharosInstance.set(parser);
 
   return {

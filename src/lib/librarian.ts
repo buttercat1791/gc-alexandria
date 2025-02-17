@@ -33,7 +33,7 @@ export class Librarian {
 
     const sectionContent = await getSectionContent(parent!.event, this.publication);
 
-    const parser = new Pharos(this.ndk);
+    const parser = new Pharos();
     parser.parse(sectionContent);
 
     return parser.getHtml();

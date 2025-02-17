@@ -7,7 +7,6 @@ declare global {
     interface PageData {
       ndk?: NDK;
       parser?: Pharos;
-      waitable?: Promise<any>;
       publicationType?: string;
     }
     // interface Platform {}

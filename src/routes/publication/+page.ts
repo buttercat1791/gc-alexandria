@@ -39,10 +39,10 @@ export const load: PageLoad = async ({ url, parent }) => {
 
   indexEvent = await eventPromise as NDKEvent;
   const publicationType = indexEvent?.getMatchingTags('type')[0]?.[1];
-  const fetchPromise = parser.fetch(indexEvent);
+  // TODO: Use Librarian to fetch publication events.
+  // const fetchPromise = parser.fetch(indexEvent);
 
   return {
-    waitable: fetchPromise,
     publicationType,
   };
 };

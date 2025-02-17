@@ -10,9 +10,5 @@
 </script>
 
 <main>
-  {#await data.waitable}
-    <TextPlaceholder divClass='skeleton-leather w-full' size="xxl" />
-  {:then}
-    <Article rootId={data.parser.getRootIndexId()} publicationType={data.publicationType} />
-  {/await}
+  <Article rootId={data.parser.getRootIndexId()} publicationType={data.publicationType} />
 </main>

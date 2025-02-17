@@ -67,8 +67,6 @@ export default class Pharos {
 
   private asciidoctor: Asciidoctor;
 
-  private ndk: NDK;
-
   private contextCounters: Map<string, number> = new Map<string, number>();
 
   /**
@@ -129,10 +127,8 @@ export default class Pharos {
 
   // #region Public API
 
-  constructor(ndk: NDK) {
+  constructor() {
     this.asciidoctor = asciidoctor();
-
-    this.ndk = ndk;
 
     const pharos = this;
     this.asciidoctor.Extensions.register(function () {
@@ -154,28 +150,6 @@ export default class Pharos {
       console.error(error);
       throw new Error('Failed to parse AsciiDoc document.');
     }
-  }
-
-  /**
-   * Fetches and parses the event tree for a publication given the event or event ID of the
-   * publication's root index.
-   * @param event The event or event ID of the publication's root index.
-   */
-  async fetch(event: NDKEvent | string): Promise<void> {
-    let content: string;
-
-    if (typeof event === 'string') {
-      const index = await this.ndk.fetchEvent({ ids: [event] });
-      if (!index) {
-        throw new Error('Failed to fetch publication.');
-      }
-
-      content = await this.getPublicationContent(index);
-    } else {
-      content = await this.getPublicationContent(event);
-    }
-
-    this.parse(content);
   }
 
   /**
@@ -583,62 +557,6 @@ export default class Pharos {
     }
   }
 
-  /**
-   * Uses the NDK to crawl the event tree of a publication and return its content as a string.
-   * @param event The root index event of the publication.
-   * @returns The content of the publication as a string.
-   * @remarks This function does a depth-first crawl of the event tree using the relays specified
-   * on the NDK instance.
-   */
-  private async getPublicationContent(event: NDKEvent, depth: number = 0): Promise<string> {
-    let content: string = '';
-
-    // Format title into AsciiDoc header.
-    const title = event.getMatchingTags('title')[0][1];
-    let titleLevel = '';
-    for (let i = 0; i <= depth; i++) {
-      titleLevel += '=';
-    }
-    content += `${titleLevel} ${title}\n\n`;
-
-    // TODO: Deprecate `e` tags in favor of `a` tags required by NIP-62.
-    let tags = event.getMatchingTags('a');
-    if (tags.length === 0) {
-      tags = event.getMatchingTags('e');
-    }
-
-    // Base case: The event is a zettel.
-    if (zettelKinds.includes(event.kind ?? -1)) {
-      content += event.content;
-      return content;
-    }
-
-    // Recursive case: The event is an index.
-    const childEvents = await Promise.all(
-      tags.map(tag => this.ndk.fetchEventFromTag(tag, event))
-    );
-
-    // Michael J - 15 December 2024 - This could be further parallelized by recursively fetching
-    // children of index events before processing them for content.  We won't make that change now,
-    // as it would increase complexity, but if performance suffers, we can revisit this option.
-    const childContentPromises: Promise<string>[] = [];
-    for (let i = 0; i < childEvents.length; i++) {
-      const childEvent = childEvents[i];
-      
-      if (!childEvent) {
-        console.warn(`NDK could not find event ${tags[i][1]}.`);
-        continue;
-      }
-
-      childContentPromises.push(this.getPublicationContent(childEvent, depth + 1));
-    }
-
-    const childContents = await Promise.all(childContentPromises);
-    content += childContents.join('\n\n');
-
-    return content;
-  }
-
   // #endregion
 
   // #region NDKEvent Generation
@@ -711,7 +629,7 @@ export default class Pharos {
     const childTags = Array.from(this.indexToChildEventsMap.get(nodeId)!)
       .map(id => ['#e', this.eventIds.get(id)!]);
 
-    const event = new NDKEvent(this.ndk);
+    const event = new NDKEvent();
     event.kind = 30040;
     event.content = '';
     event.tags = [
@@ -778,7 +696,7 @@ export default class Pharos {
     const title = (this.nodes.get(nodeId)! as Block).getTitle();
     const content = (this.nodes.get(nodeId)! as Block).getSource();  // AsciiDoc source content.
 
-    const event = new NDKEvent(this.ndk);
+    const event = new NDKEvent();
     event.kind = 30041;
     event.content = content!;
     event.tags = [

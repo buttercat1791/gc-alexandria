@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import { pharosInstance, SiblingSearchDirection } from '$lib/pharos';
+  import { pharosInstance, SiblingSearchDirection } from '$lib/parser/pharos';
   import { Button, ButtonGroup, CloseButton, Input, P, Textarea, Tooltip } from 'flowbite-svelte';
   import { CaretDownSolid, CaretUpSolid, EditOutline } from 'flowbite-svelte-icons';
   import Self from './Preview.svelte';

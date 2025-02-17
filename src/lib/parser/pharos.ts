@@ -36,6 +36,22 @@ export enum InsertLocation {
   After
 }
 
+// TODO: Rewrite this class as a generic type that can use a PublicationTree or a new tree type
+// that matches the current Pharos tree memory structure used for editing and publishing.
+
+interface EventTree {
+  getRootNode<NodeType extends EventTreeNode>(): NodeType;
+  getNodeByDTag<NodeType extends EventTreeNode>(dTag: string): NodeType;
+  addNode<NodeType extends EventTreeNode>(node: NDKEvent, parentNode: NodeType): void;
+  clear(): void;
+}
+
+interface EventTreeNode {
+  event: NDKEvent;
+  parent: EventTreeNode;
+  children: EventTreeNode[];
+}
+
 /**
  * @classdesc Pharos is an extension of the Asciidoctor class that adds Nostr Knowledge Base (NKB)
  * features to core Asciidoctor functionality.  Asciidoctor is used to parse an AsciiDoc document
@@ -43,7 +59,7 @@ export enum InsertLocation {
  * @class
  * @augments Asciidoctor
  */
-export default class Pharos {
+export default class Pharos<TreeType extends EventTree> {
   /**
    * Key to terminology used in the class:
    * 
@@ -66,6 +82,8 @@ export default class Pharos {
    */
 
   private asciidoctor: Asciidoctor;
+
+  private eventTree?: TreeType;
 
   private contextCounters: Map<string, number> = new Map<string, number>();
 
@@ -127,9 +145,11 @@ export default class Pharos {
 
   // #region Public API
 
-  constructor() {
+  constructor(initEventTree?: TreeType) {
     this.asciidoctor = asciidoctor();
+    this.eventTree = initEventTree;
 
+    // TODO: Conditionally register the extension based on the parsing mode (read or edit).
     const pharos = this;
     this.asciidoctor.Extensions.register(function () {
       const registry = this;
@@ -198,9 +218,12 @@ export default class Pharos {
    * @returns The title, if available, from the metadata of the index with the given ID.
    */
   getIndexTitle(id: string): string | undefined {
-    const section = this.nodes.get(id) as Section;
-    const title = section.getTitle() ?? '';
-    return he.decode(title);
+    return this.eventTree
+      ?.getNodeByDTag(id)
+      ?.event
+      .tags
+      .find(tag => tag[0] === 'title')
+      ?.[1] ?? '';
   }
 
   /**
@@ -234,15 +257,12 @@ export default class Pharos {
    * - Paragraph: The content is returned as a plain string.
    */
   getContent(id: string): string {
-    const normalizedId = this.normalizeId(id);
-    const block = this.nodes.get(normalizedId!) as AbstractBlock;
-
-    switch (block.getContext()) {
-    case 'paragraph':
-      return block.getContent() ?? '';
+    const adoc = this.eventTree?.getNodeByDTag(id)?.event.content;
+    if (!adoc) {
+      throw new Error(`No content found for #d:${id}.`);
     }
 
-    return block.convert();
+    return this.asciidoctor.convert(adoc).toString();
   }
 
   /**
@@ -416,7 +436,7 @@ export default class Pharos {
     this.html = undefined;
     this.rootNodeId = undefined;
     this.rootIndexMetadata = {};
-    this.nodes.clear();
+    this.eventTree?.clear();
     this.eventToKindMap.clear();
     this.indexToChildEventsMap.clear();
     this.eventsByLevelMap.clear();
@@ -436,6 +456,7 @@ export default class Pharos {
   private treeProcessor(treeProcessor: Extensions.TreeProcessor, document: Document) {
     this.rootNodeId = this.generateNodeId(document);
     document.setId(this.rootNodeId);
+    // TODO: Convert to event tree node.
     this.nodes.set(this.rootNodeId, document);
     this.eventToKindMap.set(this.rootNodeId, 30040);
     this.indexToChildEventsMap.set(this.rootNodeId, new Set<string>());
@@ -473,6 +494,7 @@ export default class Pharos {
       sectionId = this.generateNodeId(section);
     }
 
+    // TODO: Use event tree.
     // Prevent duplicates.
     if (this.nodes.has(sectionId)) {
       return [];
@@ -511,6 +533,7 @@ export default class Pharos {
       block.setId(blockId);
     }
 
+    // TODO: Use event tree.
     // Prevent duplicates.
     if (this.nodes.has(blockId)) {
       return;
@@ -624,6 +647,7 @@ export default class Pharos {
    * children, and dated to the present moment.
    */
   private generateIndexEvent(nodeId: string, pubkey: string): NDKEvent {
+    // TODO: Use event tree.
     const title = (this.nodes.get(nodeId)! as AbstractBlock).getTitle();
     // TODO: Use a tags as per NIP-62.
     const childTags = Array.from(this.indexToChildEventsMap.get(nodeId)!)
@@ -693,6 +717,7 @@ export default class Pharos {
    * dated to the present moment.
    */
   private generateZettelEvent(nodeId: string, pubkey: string): NDKEvent {
+    // TODO: Use event tree.
     const title = (this.nodes.get(nodeId)! as Block).getTitle();
     const content = (this.nodes.get(nodeId)! as Block).getSource();  // AsciiDoc source content.
 
@@ -984,4 +1009,5 @@ export default class Pharos {
   // #endregion
 }
 
-export const pharosInstance: Writable<Pharos> = writable();
+// TODO: Remove this.
+export const pharosInstance: Writable<Pharos<any>> = writable();

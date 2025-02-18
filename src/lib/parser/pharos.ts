@@ -39,16 +39,18 @@ export enum InsertLocation {
 // TODO: Rewrite this class as a generic type that can use a PublicationTree or a new tree type
 // that matches the current Pharos tree memory structure used for editing and publishing.
 
-interface EventTree {
+export interface EventTree {
   getRootNode<NodeType extends EventTreeNode>(): NodeType;
   getNodeByDTag<NodeType extends EventTreeNode>(dTag: string): NodeType;
   addNode<NodeType extends EventTreeNode>(node: NDKEvent, parentNode: NodeType): void;
   clear(): void;
 }
 
-interface EventTreeNode {
-  event: NDKEvent;
-  parent: EventTreeNode;
+export interface EventTreeNode {
+  dTag: string;
+  title: string;
+  content: string;
+  parent?: EventTreeNode;
   children: EventTreeNode[];
 }
 
@@ -218,12 +220,7 @@ export default class Pharos<TreeType extends EventTree> {
    * @returns The title, if available, from the metadata of the index with the given ID.
    */
   getIndexTitle(id: string): string | undefined {
-    return this.eventTree
-      ?.getNodeByDTag(id)
-      ?.event
-      .tags
-      .find(tag => tag[0] === 'title')
-      ?.[1] ?? '';
+    return this.eventTree?.getNodeByDTag(id)?.title;
   }
 
   /**
@@ -257,7 +254,7 @@ export default class Pharos<TreeType extends EventTree> {
    * - Paragraph: The content is returned as a plain string.
    */
   getContent(id: string): string {
-    const adoc = this.eventTree?.getNodeByDTag(id)?.event.content;
+    const adoc = this.eventTree?.getNodeByDTag(id)?.content;
     if (!adoc) {
       throw new Error(`No content found for #d:${id}.`);
     }

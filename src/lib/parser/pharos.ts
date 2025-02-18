@@ -40,9 +40,9 @@ export enum InsertLocation {
 // that matches the current Pharos tree memory structure used for editing and publishing.
 
 export interface EventTree {
-  getRootNode<NodeType extends EventTreeNode>(): NodeType;
-  getNodeByDTag<NodeType extends EventTreeNode>(dTag: string): NodeType;
-  addNode<NodeType extends EventTreeNode>(node: NDKEvent, parentNode: NodeType): void;
+  getRootNode(): EventTreeNode;
+  getNodeByDTag(dTag: string): EventTreeNode;
+  addNode(node: EventTreeNode, parentNode: EventTreeNode): void;
   clear(): void;
 }
 

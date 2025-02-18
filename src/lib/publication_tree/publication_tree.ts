@@ -9,7 +9,7 @@ export interface PublicationTreeNode extends EventTreeNode {
   event: NDKEvent;
   dTag: string;
   title: string;
-  content: string;
+  content?: string;
   parent?: PublicationTreeNode;
   children: PublicationTreeNode[];
 }

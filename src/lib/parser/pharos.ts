@@ -49,7 +49,7 @@ export interface EventTree {
 export interface EventTreeNode {
   dTag: string;
   title: string;
-  content: string;
+  content?: string;
   parent?: EventTreeNode;
   children: EventTreeNode[];
 }

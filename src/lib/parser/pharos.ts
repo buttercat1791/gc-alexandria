@@ -14,6 +14,7 @@ import he from 'he';
 import { writable, type Writable } from 'svelte/store';
 import { zettelKinds } from '../consts';
 import type PublicationTree from '../publication_tree/publication_tree';
+import AsciidoctorTree from '$lib/asciidoctor_tree/asciidoctor_tree';
 
 interface IndexMetadata {
   authors?: string[];
@@ -54,6 +55,11 @@ export interface EventTreeNode {
   children: EventTreeNode[];
 }
 
+enum PharosMode {
+  Read,
+  Edit,
+}
+
 /**
  * @classdesc Pharos is an extension of the Asciidoctor class that adds Nostr Knowledge Base (NKB)
  * features to core Asciidoctor functionality.  Asciidoctor is used to parse an AsciiDoc document
@@ -86,6 +92,8 @@ export default class Pharos<TreeType extends EventTree> {
   private asciidoctor: Asciidoctor;
 
   private eventTree?: TreeType;
+
+  private mode: PharosMode;
 
   private contextCounters: Map<string, number> = new Map<string, number>();
 
@@ -151,18 +159,26 @@ export default class Pharos<TreeType extends EventTree> {
     this.asciidoctor = asciidoctor();
     this.eventTree = initEventTree;
 
-    // TODO: Conditionally register the extension based on the parsing mode (read or edit).
-    const pharos = this;
-    this.asciidoctor.Extensions.register(function () {
-      const registry = this;
-      registry.treeProcessor(function () {
-        const dsl = this;
-        dsl.process(function (document) {
-          const treeProcessor = this;
-          pharos.treeProcessor(treeProcessor, document);
-        });
-      })
-    });
+    if (this.eventTree instanceof AsciidoctorTree) {
+      this.mode = PharosMode.Read;
+    } else {
+      this.mode = PharosMode.Edit;
+    }
+
+    if (this.mode === PharosMode.Read) {
+      const pharos = this;
+      this.asciidoctor.Extensions.register(function () {
+        const registry = this;
+        registry.treeProcessor(function () {
+          const dsl = this;
+          dsl.process(function (document) {
+            const treeProcessor = this;
+            // TODO: Move tree processing logic to AsciidoctorTree class.
+            pharos.treeProcessor(treeProcessor, document);
+          });
+        })
+      });
+    }
   }
 
   parse(content: string, options?: ProcessorOptions | undefined): void {

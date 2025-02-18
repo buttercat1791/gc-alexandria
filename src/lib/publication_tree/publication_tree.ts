@@ -1,11 +1,15 @@
+import type { EventTreeNode } from '$lib/parser/pharos';
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 
 /**
  * Represents a node in the event tree composing a publication.  The data contained in the node is
  * a Nostr event, and the node contains links to its parent and children.
  */
-export interface PublicationTreeNode {
+export interface PublicationTreeNode extends EventTreeNode {
   event: NDKEvent;
+  dTag: string;
+  title: string;
+  content: string;
   parent?: PublicationTreeNode;
   children: PublicationTreeNode[];
 }
@@ -32,6 +36,9 @@ export default class PublicationTree {
   constructor(rootEvent: NDKEvent) {
     this.root = {
       event: rootEvent,
+      dTag: rootEvent.dTag!,
+      title: rootEvent.tags.find(tag => tag[0] === 'title')?.[1]!,
+      content: rootEvent.content,
       children: [],
     };
     this.nodesById.set(rootEvent.id, this.root);
@@ -73,6 +80,9 @@ export default class PublicationTree {
     // are linked by reference.
     const node: PublicationTreeNode = {
       event,
+      dTag: event.dTag!,
+      title: event.tags.find(tag => tag[0] === 'title')?.[1]!,
+      content: event.content,
       parent: parentNode,
       children: [],
     };

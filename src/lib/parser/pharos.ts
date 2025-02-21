@@ -146,12 +146,12 @@ export default class Pharos<TreeType extends EventTree> {
     this.eventTree = initEventTree;
 
     if (this.eventTree instanceof AsciidoctorTree) {
-      this.mode = PharosMode.Read;
-    } else {
       this.mode = PharosMode.Edit;
+    } else {
+      this.mode = PharosMode.Read;
     }
 
-    if (this.mode === PharosMode.Read) {
+    if (this.mode === PharosMode.Edit) {
       const pharos = this;
       this.asciidoctor.Extensions.register(function () {
         const registry = this;

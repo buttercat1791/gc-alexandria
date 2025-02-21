@@ -1,6 +1,6 @@
 import type { AbstractNode } from '@asciidoctor/core';
 import type { AbstractBlock } from 'asciidoctor';
-import type { EventTree, EventTreeNode } from '$lib/parser/pharos';
+import type { EventTree, EventTreeNode } from '$lib/event_tree/event_tree';
 import he from 'he';
 
 export interface AsciidoctorTreeNode extends EventTreeNode {
@@ -14,7 +14,6 @@ export interface AsciidoctorTreeNode extends EventTreeNode {
 
 export default class AsciidoctorTree implements EventTree {
   private root: AsciidoctorTreeNode;
-
   private nodes: Map<string, AsciidoctorTreeNode> = new Map();
 
   constructor(root: AbstractNode) {
@@ -25,6 +24,8 @@ export default class AsciidoctorTree implements EventTree {
       children: [],
     };
   }
+
+  // #region EventTree Implementation
 
   getRootNode(): AsciidoctorTreeNode {
     return this.root;
@@ -42,6 +43,36 @@ export default class AsciidoctorTree implements EventTree {
   clear(): void {
     this.nodes.clear();
   }
+
+  // #endregion
+
+  // #region Iterable<EventTreeNode> Implementation
+
+  /**
+   * Iterates over the leaf nodes of the tree in depth-first order.
+   */
+  *[Symbol.iterator](): IterableIterator<EventTreeNode> {
+    const stack: AsciidoctorTreeNode[] = [this.root];
+
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+
+      // Base case: the node is a leaf, so we yield it.
+      if (node.children.length === 0) {
+        yield node;
+        continue;
+      }
+
+      // Recursive case: the node is not a leaf, so we push its children onto the stack.
+      // We push the children in LIFO order to ensure that the children are visited in the correct
+      // order.
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        stack.push(node.children[i]);
+      }
+    }
+  }
+
+  // #endregion
 
   // #region Private Helpers
 

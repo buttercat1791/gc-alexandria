@@ -15,6 +15,7 @@ import { writable, type Writable } from 'svelte/store';
 import { zettelKinds } from '../consts';
 import type PublicationTree from '../publication_tree/publication_tree';
 import AsciidoctorTree from '$lib/asciidoctor_tree/asciidoctor_tree';
+import type { EventTree } from '$lib/event_tree/event_tree';
 
 interface IndexMetadata {
   authors?: string[];
@@ -39,21 +40,6 @@ export enum InsertLocation {
 
 // TODO: Rewrite this class as a generic type that can use a PublicationTree or a new tree type
 // that matches the current Pharos tree memory structure used for editing and publishing.
-
-export interface EventTree {
-  getRootNode(): EventTreeNode;
-  getNodeByDTag(dTag: string): EventTreeNode;
-  addNode(node: EventTreeNode, parentNode: EventTreeNode): void;
-  clear(): void;
-}
-
-export interface EventTreeNode {
-  dTag: string;
-  title: string;
-  content?: string;
-  parent?: EventTreeNode;
-  children: EventTreeNode[];
-}
 
 enum PharosMode {
   Read,

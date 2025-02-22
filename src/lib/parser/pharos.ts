@@ -53,7 +53,7 @@ enum PharosMode {
  * @class
  * @augments Asciidoctor
  */
-export default class Pharos<TreeType extends EventTree> {
+export default class Pharos<TreeType extends EventTree<NodeType>, NodeType> {
   /**
    * Key to terminology used in the class:
    * 
@@ -80,6 +80,8 @@ export default class Pharos<TreeType extends EventTree> {
   private eventTree?: TreeType;
 
   private mode: PharosMode;
+
+  private pubkey: string;
 
   private contextCounters: Map<string, number> = new Map<string, number>();
 
@@ -141,12 +143,14 @@ export default class Pharos<TreeType extends EventTree> {
 
   // #region Public API
 
-  constructor(initEventTree?: TreeType) {
+  constructor(pubkey: string, initEventTree?: TreeType) {
     this.asciidoctor = asciidoctor();
+    this.pubkey = pubkey;
     this.eventTree = initEventTree;
 
-    if (this.eventTree instanceof AsciidoctorTree) {
+    if (this.eventTree == null) {
       this.mode = PharosMode.Edit;
+      this.eventTree = new AsciidoctorTree(this.pubkey) as unknown as TreeType;
     } else {
       this.mode = PharosMode.Read;
     }
@@ -159,8 +163,8 @@ export default class Pharos<TreeType extends EventTree> {
           const dsl = this;
           dsl.process(function (document) {
             const treeProcessor = this;
-            // TODO: Move tree processing logic to AsciidoctorTree class.
-            pharos.treeProcessor(treeProcessor, document);
+            (pharos.eventTree! as unknown as AsciidoctorTree).processAST(treeProcessor, document);
+            this.process(document);
           });
         })
       });
@@ -1007,6 +1011,3 @@ export default class Pharos<TreeType extends EventTree> {
 
   // #endregion
 }
-
-// TODO: Remove this.
-export const pharosInstance: Writable<Pharos<any>> = writable();
